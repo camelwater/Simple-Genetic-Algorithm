@@ -5,6 +5,24 @@ Created on Sat Jun 5 15:30:03 2021
 @author: ryanz
 """
 
+CHAR_MAP = {
+    "Λ": 'A',
+    "λ": 'A',
+    "ß": "B",
+    "¢": "c",
+    "Ξ": "E",
+    "σ": "o", 
+    "や": "P",
+    "$": "S",
+    "ν": "v", 
+    "γ": "y"
+}
+
+VALID_CHARS = "/\*^+-abcdefghijklmnopqrstuvwxyz\u03A9\u038F" + "abcdefghijklmnopqrstuvwxyz0123456789".upper()
+
+PRE_REMOVE = "/\*^+-"
+
+
 def is_CJK(char):
     return any([start <= ord(char) <= end for start, end in 
                 [(4352, 4607), (11904, 42191), (43072, 43135), (44032, 55215), 
@@ -55,23 +73,6 @@ def replace_brackets(string):
 
 def dis_clean(string):
     return string.replace("*", "\*").replace("`",'\`').replace("_", "\_").replace("~~", "\~~")
-
-CHAR_MAP = {
-    "Λ": 'A',
-    "λ": 'A',
-    "ß": "B",
-    "¢": "c",
-    "Ξ": "E",
-    "σ": "o", 
-    "や": "P",
-    "$": "S",
-    "ν": "v", 
-    "γ": "y"
-}
-
-VALID_CHARS = "/\*^+-abcdefghijklmnopqrstuvwxyz\u03A9\u038F" + "abcdefghijklmnopqrstuvwxyz0123456789".upper()
-
-PRE_REMOVE = "/\*^+-"
 
 
 if __name__ == "__main__":
