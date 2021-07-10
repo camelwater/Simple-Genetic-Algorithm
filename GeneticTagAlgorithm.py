@@ -58,7 +58,7 @@ def pre_sub_check(m):
 
 
 class TagAlgo:
-    def __init__(self, player_list, num_teams, per_team, generations = 50, size = 100, mut_rate = 0.1, top_select = 10):
+    def __init__(self, player_list, num_teams, per_team, generations = 100, size = 250, mut_rate = 0.07, top_select = 21): #didn't really tune these hyperparameters
         self.size = size
         self.generations = generations
         self.mut_rate = mut_rate
@@ -74,7 +74,7 @@ class TagAlgo:
     def solve(self):
         population = self.init_pop(self.size)
 
-        elite, top_fit = [], 9999999999
+        elite, top_fit = [], 696969696969 #random big number
         for g in range(self.generations):
             fit = [self.fitness(c) for c in population]
             elite, top_fit = self.select_elite(population, fit)
@@ -85,8 +85,8 @@ class TagAlgo:
             print(f"generation {g+1} -> best fitness: {top_fit}")
             if top_fit == 0:
                 break
-            if self.last_fits.count(top_fit)>self.generations/2:
-                break
+#             if self.last_fits.count(top_fit)>self.generations/2:
+#                 break
 
             population = self.breed(elite)
         
@@ -114,7 +114,7 @@ class TagAlgo:
             chunks[i] = ["" , chunks[i]]
         return chunks
     
-    def breed_elite(self, population, elite_muts = 3):
+    def breed_elite(self, population, elite_muts = 5):
         for i,c in enumerate(population):
             muts = []
             for _ in range(elite_muts):
@@ -128,9 +128,9 @@ class TagAlgo:
 
     def breed(self, elite):
         #elite = copy.deepcopy(elite)
-        elite = self.breed_elite(elite)
+        elite = self.breed_elite(elite) #elitism + allowing mutations within elite
 
-        for c in range(self.size - len(elite)):
+        for c in range(self.size - len(elite)): #took out crossover since it was making the algorithm take too long; this problem isn't the best application for genetic algorithm anyways, but whatever
             #p1 = rand.choice(elite)
             #p2 = rand.choice(elite)
             #child = self.crossover(p1, p2)
@@ -171,8 +171,7 @@ class TagAlgo:
                         fitness+=150
                         
                     elif possible.index(longest_tag) == 2:
-                        fitness += 1000
-                        
+                        fitness += 1000   
             
             if len(group[1])!=self.num_per_team:
                 fitness+=1000
@@ -183,8 +182,6 @@ class TagAlgo:
                 other_fit = self.fit_other_better(group, player, chromosome)
                 if other_fit[0]:
                     fitness+=250*other_fit[1]
-                    if final_check:
-                        print(other_fit)
         
         if len(chromosome)<self.num_teams:
             fitness+=1000
@@ -200,7 +197,6 @@ class TagAlgo:
         
         #check suffix
         #suf = commonprefix(list(map(lambda l: l[::-1], group)))
-        #suf = pre_suf_check(group)
         
         #check substring
         sub = ""
@@ -228,13 +224,13 @@ class TagAlgo:
         
         return (True, count) if count>0 else (False, 0)
 
-    def crossover(self, p1, p2):
+    def crossover(self, p1, p2): #slows algorithm down because it creates child chromosomes with duplicate strings, which makes the solution completely useless
         r = rand.random()
         use_cut = p1 if r<0.5 else p2
         cutoff = rand.randint(0, len(use_cut)-1)
         return p1[:cutoff] + p2[cutoff:]
     
-    def mutate(self, chromosome):
+    def mutate(self, chromosome): #swap two strings
         tick = time.perf_counter_ns()
         if rand.random()<self.mut_rate:
             swap_from = rand.randint(0, len(chromosome)-1)
