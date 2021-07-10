@@ -254,9 +254,9 @@ class TagAlgo:
 
 if __name__ == "__main__":
 
-    #players = ["MV boob", "pringle@MV", "LTA", "LTA HELLO", "MVMVMV", "LTAX", "MV help", "val LTA", "poo LTA", "5headMV"]
-    #players = list({'x#1':0, 'xxx':0, 'Ryan@X':0, '¢unt':0, 'coolio': 0, 'cool kid': 0, "GG EZ": 0, 'gas mob':0, "gassed up":0, "bb":0, "bro123":0, "batman":0}.keys())
-    players = [('1', "x#1"), ('2', "xxx"), ('3', "ryan@x"), ('4', "¢unt"), ('5', "cool kid cool"), 
+    #players = ["MV bob", "pringle@MV", "LTA", "LTA HELLO", "MVMVMV", "LTAX", "MV help", "val LTA", "poo LTA", "5headMV"]
+    #players = list({'x#1':0, 'xxx':0, 'Ryan@X':0, '¢ant':0, 'coolio': 0, 'cool kid': 0, "GG EZ": 0, 'gas mob':0, "gassed up":0, "bb":0, "bro123":0, "batman":0}.keys())
+    players = [('1', "x#1"), ('2', "xxx"), ('3', "ryan@x"), ('4', "¢orona"), ('5', "cool kid cool"), 
            ('6', "coolio"), ('7', "GG EZ"), ('8', "gassed up"), ('9', "gas mob"), ('10', "caya kanar"), ('11', "kaya yanar"), ('12', "yaka ranar")]
     players = [o[1] for o in players]
     players = list(map(lambda l: Utils.sanitize_uni(l.strip().lower()), players))
