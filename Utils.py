@@ -5,22 +5,22 @@ Created on Sat Jun 5 15:30:03 2021
 @author: ryanz
 """
 
-CHAR_MAP = {
-    "Λ": 'A',
-    "λ": 'A',
-    "ß": "B",
-    "¢": "c",
-    "Ξ": "E",
-    "σ": "o", 
-    "や": "P",
-    "$": "S",
-    "ν": "v", 
-    "γ": "y"
-}
+def chunks(l, n):
+    """
+    split list into smaller lists
 
-VALID_CHARS = "/\*^+-abcdefghijklmnopqrstuvwxyz\u03A9\u038F" + "abcdefghijklmnopqrstuvwxyz0123456789".upper()
+    Parameters
+    ----------
+    l : list to split
+    n : number of elements per sublist
 
-PRE_REMOVE = "/\*^+-"
+    Yields
+    ------
+    smaller lists of l with len(n) each
+
+    """
+    for i in range(0, len(l), n):
+        yield l[i:i+n]
 
 
 def is_CJK(char):
@@ -32,23 +32,41 @@ def is_CJK(char):
 
 from unidecode import unidecode
 
-def sanitize_uni(string):
+def sanitize_uni(string, for_search = False):
     '''
-    convert known/common un-unidecodable strings to unicode, then strip all non-
-
-    Returns
-    -------
-    string with no CJK and non-unicode characters
+    convert known/common un-unidecodable and unicode strings to ASCII and clean string for tag-matching
 
     '''
-    
-    string = [CHAR_MAP.get(i, i) for i in string]
-    ret = list(unidecode(''.join(string)))
+  
+    ret= []
+    for i in string:
+        if i in MULT_CHAR_MAP:
+            for char in MULT_CHAR_MAP[i]:
+                ret.append(char)
+            continue
+        i = CHAR_MAP.get(i, i)
+        if i in VALID_CHARS:
+            ret.append(i)
+            continue
+        
+        ret.append(" ")
+        # n = unidecode(i)
+        # if n=="":
+        #     ret.append(" ")
+        # elif n in VALID_CHARS:
+        #     ret.append(n)
+            
+    if for_search:
+        return ''.join(ret)
+
     while len(ret)>0:
-        if ret[0] in PRE_REMOVE or ret[0] not in VALID_CHARS:
+        if ret[0] in PRE_REMOVE:
             ret.pop(0)
+        elif ret[-1] in POST_REMOVE:
+            ret.pop(-1)
         else:
             break
+
     return ''.join(ret)
 
 
@@ -56,27 +74,81 @@ def sanitize_tag_uni(string):
     '''
     get rid of non-unicode characters that cannot be converted, but keep convertable characters in original form
     '''
-    string = [i for i in string if CHAR_MAP.get(i, i) in VALID_CHARS or (unidecode(i)!="" and unidecode(i) in VALID_CHARS)]
+    string = [i for i in string if CHAR_MAP.get(i, i) in VALID_CHARS or i in MULT_CHAR_MAP or (unidecode(i)!="" and unidecode(i) in VALID_CHARS)]
     while len(string)>0:
         if string[0] in PRE_REMOVE:
             string.pop(0)
+        elif string[-1] in POST_REMOVE:
+            string.pop(-1)
         else:
             break
+
     return ''.join(string)
 
-def replace_brackets(string):
-    string = string.lstrip('[').lstrip(']').lstrip('(').lstrip(')').lstrip('{').lstrip('}')
-    string = list(unidecode(sanitize_uni(string)))
-    ret = [i for i in string if i in VALID_CHARS]
+
+### constants + maps
+
+VALID_CHARS = "/\*^+-_.!?@%&()\u03A9\u038F" + "abcdefghijklmnopqrstuvwxyz" + "abcdefghijklmnopqrstuvwxyz0123456789 ".upper()
+PRE_REMOVE = "/\*^+-_.!?#%() "
+POST_REMOVE = "/\*^+-.!?# "
+
+CHAR_MAP = {
+    "Λ": 'A', "λ": 'A', "@": 'A', "Δ": "A", "Ά": "A", "Ã": "A", "À": "A", "Á": "A", "Â": "A", "Ä": "A", "Å": "A", "ά": "a", "à": "a", "á": "a", "â": "a", "ä": "a", "å": "a", "ã": "a", "α": "a", "ª": "a",
     
-    return ''.join(ret)
+    "♭": "b", "ß": "B", "β": "B",
+    
+    "¢": "c", "ς": "c", "ç": "c", "©": "c", "Ç": "C",
+    
+    "è": "e", "é": "e", "ê": "e", "ë": "e", "ε": "e", "ᵉ": "e", "έ": "E", "€": "E", "Ξ": "E", "ξ": "E", "Σ": "E", "£": "E", "Έ": "E", "È": "E", "É": "E", "Ê": "E", "Ë": "E",
+    
+    "Ή": "H",
 
-def dis_clean(string):
-    return string.replace("*", "\*").replace("`",'\`').replace("_", "\_").replace("~~", "\~~")
+    "ì": "i", "í": "i", "î": "i", "ï": "i", "ι": "i", "ΐ": "i", "ί": "i", "ϊ": "i", "Ϊ": "I", "Ì": "I", "Í": "I", "Î": "I", "Ί": "I", "Ï": "I",
+    
+    "κ": "k", 
 
+    "ñ": "n", "η": "n", "ή": "n", "Ñ": "N", "Π": "N",
+
+    "σ": "o", "○": "o", "º": "o", "ο": "o", "ò": "o", "ó": "o", "ό": "o", "ô": "o", "ö": "o", "ø": "o", "δ": "o", "õ": "o", "Ό": "O", "Ò": "O", "Ó": "O", "Ô": "O", "Ö": "O", "Ø": "O", "Õ": "O", "θ": "O", "φ": "O", "Θ": "O", "Φ": "O", "Ω": "O", "Ώ": "O", "◎": "O",
+    
+    "や": "P", "ρ": "p",
+    
+    "π": "r", "Г": "r", "®": "R",
+    
+    "$": "S", "§": "S",
+    
+    "τ": "t",
+    
+    "μ": "u", "ù": "u", "ú": "u", "û": "u", "ü": "u", "ϋ": "u", "ύ": "u", "Ù": "U", "Ú": "U", "Û": "U", "Ü": "U", "ΰ": "U", "υ": "u",
+    
+    "ν": "v",
+
+    "ώ": "w", "Ψ": "w", "ω": "w", "ψ": "W",
+    
+    "χ": "X",
+    
+    "ý": "y", "ÿ": "y", "γ": "y", "¥": "Y", "Ύ": "Y", "Ϋ": "Y", "Ý": "Y", "Ÿ": "Y",
+    
+    "ζ": "Z"
+}
+
+MULT_CHAR_MAP = {
+    "Æ": 'AE',
+    "æ": "ae",
+
+    "œ": "oe",
+    "Œ": "OE",
+
+    "™": "TM"
+}
 
 if __name__ == "__main__":
-    i = "!A★A"
-    print(sanitize_uni(i))
-    
+    import time
+    i = "Player"
+    sans = []
+    t = time.time()
+    for _ in range(100):
+        sans.append(sanitize_uni(i))
+    print(time.time()-t)
+    print(sans[0])
     
