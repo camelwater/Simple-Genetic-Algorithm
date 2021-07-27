@@ -43,9 +43,6 @@ def commonaffix(group):
         if presuf:
             return True, ret
 
-        # sub = max(intersection, key=len)
-        # if len(sub)<=1:
-        #     sub = ""
         return False, ""
     except:
         sub = ""
@@ -53,7 +50,7 @@ def commonaffix(group):
     return False, sub
 
 class SimulatedAnnealing:
-    def __init__(self, players, per_team, temp = 1.0, alpha = 0.9, iterations = 275):
+    def __init__(self, players, per_team, temp = 1.0, alpha = 0.9, iterations = 425):
         self.T = temp
         self.ALPHA = alpha
         self.ITERS = iterations
@@ -63,6 +60,9 @@ class SimulatedAnnealing:
 
     
     def init_state(self):
+        '''
+        initialize random state
+        '''
         rand.shuffle(self.players)
         chunks = list(Utils.chunks(self.players, self.num_per_team))
         for i in range(len(chunks)):
@@ -76,15 +76,14 @@ class SimulatedAnnealing:
         pre = commonprefix(group)
         
         #check suffix
-        suf = commonprefix(list(map(lambda l: l[::-1], group)))
+        suf = commonprefix(list(map(lambda l: l[::-1], group)))[::-1]
         
-        #check mixed suffix
+        #check mixed affixes
         mixed = ''
         is_pre_suf, to_det = commonaffix(group)
         if is_pre_suf:
             mixed = to_det
         
-        # return [pre.strip()] + ([suf.strip(),sub.strip()] if pre.strip()=="" else [])
         return pre.strip(), suf.strip(), mixed.strip()
 
     def tags_eval(self, state):
@@ -96,30 +95,32 @@ class SimulatedAnnealing:
             longest_tag = max(possible, key=len)
             group[0] = longest_tag
             if longest_tag =="":
-                energy+=5000
-            else:
-                if longest_tag in seen_tags:
-                    energy+=500  
-                seen_tags.append(longest_tag) 
+                energy+=6900
+                continue
+            
+            if longest_tag in seen_tags:
+                energy+=750  
+            seen_tags.append(longest_tag) 
 
-                energy+=self.affix_score(possible, longest_tag)
+            add_energy, is_mixed = self.affix_score(possible, longest_tag)
+            energy+=add_energy
 
-            for player in group[1]:
-                if not player[0].startswith(longest_tag):
-                    energy+=50
+            if is_mixed:
+                for player in group[1]:
+                    if not player[0].startswith(longest_tag):
+                        energy+=50
 
         return energy
 
 
     def affix_score(self, possible, longest_tag):
-        energy = 0
         if possible.index(longest_tag)!=0:
             if possible.index(longest_tag) == 1:
-                energy+=250   
+                return 250, False  
             elif possible.index(longest_tag) == 2:
-                energy += 175
+                return 175, True
 
-        return energy
+        return 0, False
     
     def E(self, state):
         '''
@@ -177,10 +178,11 @@ class SimulatedAnnealing:
 
 if __name__ == "__main__":
     
-    players = ['AYA hello', '!!m&m?!', 'mong', 'MV math', 'pringle@MV', '@*', 'AYAYA', 'i need ZZZ', 'Z - stop', 'USA h', 'USA K', 'ABBA']
+    players = ['λρ Tom', 'A*', 'v¢ sauzule', 'saharave', 'MKW 4Beans', 'cadavreMK', 'coci loko', 'C', 'So[LLLLLL]', 'Zjazca', 'Z- stavros', 'vc Dane']
 
     players = list(map(lambda l: (Utils.sanitize_uni(l.strip()).lower(), l), players))
     tag_algo = SimulatedAnnealing(players, per_team = 2)
     sol, energy = tag_algo.anneal()
+    print('\n----------------------------------\n')
     print(sol)
-    print(energy)
+    print("ENERGY:",energy)
