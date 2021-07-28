@@ -39,8 +39,8 @@ def commonaffix(group: list[str]) -> tuple[bool, str]:
         return False, ""
 
 class SimulatedAnnealing:
-    def __init__(self, players: list[tuple[str, str]], per_team: int, temp = 1.0, alpha = 0.9, iterations = 425):
-        self.T = temp
+    def __init__(self, players: list[tuple[str, str]], per_team: int, temperature = 1.0, alpha = 0.9, iterations = 425):
+        self.T = temperature
         self.ALPHA = alpha
         self.ITERS = iterations
 
