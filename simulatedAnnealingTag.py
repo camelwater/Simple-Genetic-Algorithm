@@ -28,9 +28,8 @@ def commonaffix(group: list[str]) -> tuple[bool, str]:
     seqs_ngrams = map(partial(allngram, maxn=maxn), group)
     intersection = reduce(set.intersection, seqs_ngrams)
     try:
-        check_presub = sorted(intersection, key=len, reverse=True)
-        ret = ""
-        for sub in check_presub:
+        all_presub = sorted(intersection, key=len, reverse=True)
+        for sub in all_presub:
             if all([i.startswith(sub) or i.endswith(sub) for i in group]):
                 return True, sub
 
@@ -88,7 +87,8 @@ class SimulatedAnnealing:
             
             if longest_tag in seen_tags:
                 energy+=750  
-            seen_tags.append(longest_tag) 
+            else:
+                seen_tags.append(longest_tag) 
 
             add_energy, is_mixed = self.affix_score(possible, longest_tag)
             energy+=add_energy
@@ -160,12 +160,11 @@ class SimulatedAnnealing:
                 curr_solution, curr_energy = new_solution, new_energy
             
             self.T*=self.ALPHA
-            print(f"ITERATION {_n+1}-> Energy: {curr_energy}")
+            print(f"ITERATION {_n+1} -> Energy: {curr_energy}")
         
         return squeeze_names(curr_solution), curr_energy
 
 if __name__ == "__main__":
-    
     players = ['λρ Tom', 'A*', 'v¢ sauzule', 'saharave', 'MKW 4Beans', 'cadavreMK', 'coci loko', 'C', 'So[LLLLLL]', 'Zjazca', 'Z- stavros', 'vc Dane']
 
     players = list(map(lambda l: (Utils.sanitize_uni(l.strip()).lower(), l), players))

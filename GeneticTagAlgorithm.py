@@ -18,47 +18,22 @@ def allngram(seq: str, minn=1, maxn=None) -> Iterator[str]:
     ngrams = map(partial(ngram, seq), lengths)
     return set(chain.from_iterable(ngrams))
 
-def commonsubstring(group):
+def commonaffix(group: list[str]) -> tuple[bool, str]:
     maxn = min(map(len, group))
     seqs_ngrams = map(partial(allngram, maxn=maxn), group)
     intersection = reduce(set.intersection, seqs_ngrams)
     try:
         check_presub = sorted(intersection, key=len, reverse=True)
-        presuf = False
-        ret = ""
         for sub in check_presub:
-            count = 0
-            for i in group:
-                if i.startswith(sub) or i.endswith(sub):
-                    count+=1
-            if count==len(group):
-                presuf=True
-                ret = sub
-                break
-        if presuf:
-            return True, ret
+            if all([i.startswith(sub) or i.endswith(sub) for i in group]):
+                return True, sub
 
-        sub = max(intersection, key=len)
-        if len(sub)<=1:
-            sub = ""
+        return False, ""
     except:
-        sub = ""
-
-    return False, sub
-
-def pre_sub_check(m):
-    if not m: return ''
-    
-    s1 = min(m)
-    s2 = max(m)
-    for i, c in enumerate(s1):
-        if c != s2[i]:
-            return s1[:i]
-    return s1
-
+        return False, ""
 
 class TagAlgo:
-    def __init__(self, player_list, num_teams, per_team, generations = 100, size = 250, mut_rate = 0.07, top_select = 21): #didn't really tune these hyperparameters
+    def __init__(self, player_list, num_teams, per_team, generations = 125, size = 50, mut_rate = 0.075, top_select = 5): #didn't really tune these hyperparameters
         self.size = size
         self.generations = generations
         self.mut_rate = mut_rate
@@ -127,7 +102,7 @@ class TagAlgo:
         return population
 
     def breed(self, elite):
-        #elite = copy.deepcopy(elite)
+        # elite = copy.deepcopy(elite)
         elite = self.breed_elite(elite) #elitism + allowing mutations within elite
 
         for c in range(self.size - len(elite)): #took out crossover since it was making the algorithm take too long; this problem isn't the best application for genetic algorithm anyways, but whatever
@@ -140,18 +115,9 @@ class TagAlgo:
 
         return elite
 
-    
-    def fitness(self,chromosome, final_check = False):
+    def fitness(self, chromosome):
         fitness = 0
         seen_tags = []
-        # all_players = []
-        # for i in chromosome:
-        #     all_players+=i[1]
-        # num_dup= len([k for k,v in Counter(all_players).items() if v>1])
-        # fitness+=5000*num_dup
-
-        # if set(all_players) != set(self.players):
-        #     fitness+=5000
 
         for group in chromosome:
             possible = self.findTag(group[1])
@@ -162,33 +128,23 @@ class TagAlgo:
             else:
                 if longest_tag in seen_tags:
                     fitness+=500
-                    if final_check:
-                        print(longest_tag, seen_tags)
-                    
-                seen_tags.append(longest_tag)  
+                else:
+                    seen_tags.append(longest_tag)  
                 if possible.index(longest_tag)!=0:
                     if possible.index(longest_tag) == 1:
-                        fitness+=150
+                        fitness+=250
                         
                     elif possible.index(longest_tag) == 2:
-                        fitness += 1000   
+                        fitness += 175   
             
-            if len(group[1])!=self.num_per_team:
-                fitness+=1000
-            
+            # if len(group[1])!=self.num_per_team:
+            #     fitness+=1000
             for player in group[1]:
                 if not player.startswith(longest_tag):
                     fitness+=50
-                other_fit = self.fit_other_better(group, player, chromosome)
-                if other_fit[0]:
-                    fitness+=250*other_fit[1]
-        
-        if len(chromosome)<self.num_teams:
-            fitness+=1000
-            
-        if len(chromosome)>self.num_teams:
-            fitness+=2500
-        
+                # other_fit = self.fit_other_better(group, player, chromosome)
+                # if other_fit[0]:
+                #     fitness+=250*other_fit[1]
         return fitness
     
     def findTag(self,group):
@@ -196,21 +152,15 @@ class TagAlgo:
         pre = commonprefix(group)
         
         #check suffix
-        #suf = commonprefix(list(map(lambda l: l[::-1], group)))
+        suf = commonprefix(list(map(lambda l: l[::-1], group)))[::-1]
         
-        #check substring
-        sub = ""
-        suf = ""
-        is_pre_suf, to_det = commonsubstring(group)
+        #check mixed affixes
+        mixed = ''
+        is_pre_suf, to_det = commonaffix(group)
         if is_pre_suf:
-            if len(pre)==0:
-                pre = to_det
-            else:
-                suf = to_det
-        else:
-            sub = to_det
+            mixed = to_det
         
-        return [pre.strip()] + ([suf.strip(),sub.strip()] if pre.strip()=="" else [])
+        return pre.strip(), suf.strip(), mixed.strip()
     
     def fit_other_better(self,cur_group, player, chromosome):
         cur_tag = cur_group[0]
@@ -250,16 +200,15 @@ class TagAlgo:
 
 if __name__ == "__main__":
 
-    #players = ["MV bob", "pringle@MV", "LTA", "LTA HELLO", "MVMVMV", "LTAX", "MV help", "val LTA", "poo LTA", "5headMV"]
-    #players = list({'x#1':0, 'xxx':0, 'Ryan@X':0, '¢ant':0, 'coolio': 0, 'cool kid': 0, "GG EZ": 0, 'gas mob':0, "gassed up":0, "bb":0, "bro123":0, "batman":0}.keys())
-    players = [('1', "x#1"), ('2', "xxx"), ('3', "ryan@x"), ('4', "¢orona"), ('5', "cool kid cool"), 
-           ('6', "coolio"), ('7', "GG EZ"), ('8', "gassed up"), ('9', "gas mob"), ('10', "caya kanar"), ('11', "kaya yanar"), ('12', "yaka ranar")]
-    players = [o[1] for o in players]
-    players = list(map(lambda l: Utils.sanitize_uni(l.strip().lower()), players))
-    tagalgo = TagAlgo(players, 4, 3)
+    players = ["MV bob", "pringle@MV", "LTA", "LTA HELLO", "MVMVMV", "LTAX", "MV help", "val LTA", "poo LTA", "5headMV"]
+    # players = list({'x#1':0, 'xxx':0, 'Ryan@X':0, '¢ant':0, 'coolio': 0, 'cool kid': 0, "GG EZ": 0, 'gas mob':0, "gassed up":0, "bb":0, "bro123":0, "batman":0}.keys())
+    # players = ['λρ Tom', 'A*', 'v¢ sauzule', 'saharave', 'MKW 4Beans', 'cadavreMK', 'coci loko', 'C', 'So[LLLLLL]', 'Zjazca', 'Z- stavros', 'vc Dane']
+
+    players = list(map(lambda l: Utils.sanitize_uni(l.strip()).lower(), players))
+    tagalgo = TagAlgo(players, 6, 5)
     tick = time.time()
     final = tagalgo.solve()
-    print('solution:', final)
+    print('\nsolution:', final)
     #print(tagalgo.fitness(final, final_check=True))
     
     print("algo time:", time.time()-tick)
