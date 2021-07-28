@@ -8,7 +8,6 @@ import time
 import Utils
 import random as rand
 import copy
-from collections import Counter
 
 def ngram(seq: str, n: int) -> Iterator[str]:
     return (seq[i: i+n] for i in range(0, len(seq)-n+1))
@@ -32,8 +31,8 @@ def commonaffix(group: list[str]) -> tuple[bool, str]:
     except:
         return False, ""
 
-class TagAlgo:
-    def __init__(self, player_list, num_teams, per_team, generations = 125, size = 50, mut_rate = 0.075, top_select = 5): #didn't really tune these hyperparameters
+class GenAlgo:
+    def __init__(self, player_list, num_teams, per_team, generations = 125, size = 25, mut_rate = 0.1, top_select = 3): #didn't really tune these hyperparameters
         self.size = size
         self.generations = generations
         self.mut_rate = mut_rate
@@ -200,12 +199,12 @@ class TagAlgo:
 
 if __name__ == "__main__":
 
-    players = ["MV bob", "pringle@MV", "LTA", "LTA HELLO", "MVMVMV", "LTAX", "MV help", "val LTA", "poo LTA", "5headMV"]
+    # players = ["MV bob", "pringle@MV", "LTA", "LTA HELLO", "MVMVMV", "LTAX", "MV help", "val LTA", "poo LTA", "5headMV"]
     # players = list({'x#1':0, 'xxx':0, 'Ryan@X':0, '¢ant':0, 'coolio': 0, 'cool kid': 0, "GG EZ": 0, 'gas mob':0, "gassed up":0, "bb":0, "bro123":0, "batman":0}.keys())
-    # players = ['λρ Tom', 'A*', 'v¢ sauzule', 'saharave', 'MKW 4Beans', 'cadavreMK', 'coci loko', 'C', 'So[LLLLLL]', 'Zjazca', 'Z- stavros', 'vc Dane']
+    players = ['λρ Tom', 'A*', 'v¢ sauzule', 'saharave', 'MKW 4Beans', 'cadavreMK', 'coci loko', 'C', 'So[LLLLLL]', 'Zjazca', 'Z- stavros', 'vc Dane']
 
     players = list(map(lambda l: Utils.sanitize_uni(l.strip()).lower(), players))
-    tagalgo = TagAlgo(players, 6, 5)
+    tagalgo = GenAlgo(players, 6, 2)
     tick = time.time()
     final = tagalgo.solve()
     print('\nsolution:', final)
