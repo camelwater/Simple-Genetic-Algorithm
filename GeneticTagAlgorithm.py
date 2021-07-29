@@ -120,7 +120,10 @@ class GenAlgo:
 
         for group in chromosome:
             possible = self.findTag(group[1])
-            longest_tag = max(possible, key=len)
+            if len(possible[0])>0:
+                longest_tag = possible[0]
+            else:
+                longest_tag = max(possible, key=len)
             group[0] = longest_tag
             if longest_tag =="":
                 fitness+=5000
@@ -158,7 +161,7 @@ class GenAlgo:
         is_pre_suf, to_det = commonaffix(group)
         if is_pre_suf:
             mixed = to_det
-        
+       
         return pre.strip(), suf.strip(), mixed.strip()
     
     def fit_other_better(self,cur_group, player, chromosome):
@@ -180,7 +183,6 @@ class GenAlgo:
         return p1[:cutoff] + p2[cutoff:]
     
     def mutate(self, chromosome): #swap two strings
-        tick = time.perf_counter_ns()
         if rand.random()<self.mut_rate:
             swap_from = rand.randint(0, len(chromosome)-1)
             swap_to = rand.randint(0, len(chromosome)-1)
@@ -193,12 +195,10 @@ class GenAlgo:
             chromosome[swap_to][1].remove(ch2)
             chromosome[swap_to][1].append(ch1)
         
-        #print("mut time:", time.perf_counter_ns()-tick)
         return chromosome
 
 
 if __name__ == "__main__":
-
     # players = ["MV bob", "pringle@MV", "LTA", "LTA HELLO", "MVMVMV", "LTAX", "MV help", "val LTA", "poo LTA", "5headMV"]
     # players = list({'x#1':0, 'xxx':0, 'Ryan@X':0, '¢ant':0, 'coolio': 0, 'cool kid': 0, "GG EZ": 0, 'gas mob':0, "gassed up":0, "bb":0, "bro123":0, "batman":0}.keys())
     players = ['λρ Tom', 'A*', 'v¢ sauzule', 'saharave', 'MKW 4Beans', 'cadavreMK', 'coci loko', 'C', 'So[LLLLLL]', 'Zjazca', 'Z- stavros', 'vc Dane']
@@ -208,7 +208,6 @@ if __name__ == "__main__":
     tick = time.time()
     final = tagalgo.solve()
     print('\nsolution:', final)
-    #print(tagalgo.fitness(final, final_check=True))
     
     print("algo time:", time.time()-tick)
     

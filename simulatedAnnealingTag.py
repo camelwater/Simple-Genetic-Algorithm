@@ -8,6 +8,7 @@ from itertools import chain
 from functools import partial, reduce
 from typing import Iterator
 from os.path import commonprefix
+import time
 
 def squeeze_names(sol: list[list[str, list[tuple[str, str]]]]) -> list[list[str, list[str]]]:
     for i in range(len(sol)):
@@ -73,20 +74,20 @@ class SimulatedAnnealing:
         
         return pre.strip(), suf.strip(), mixed.strip()
 
-    def tags_eval(self, state: list[list[str, list[tuple[str, str]]]]) -> int:
+    def tags_eval(self, state: list[list[str, list[tuple[str, str]]]]) -> float:
         seen_tags = []
-        energy = 0
+        energy = 0.0
 
         for group in state:
             possible = self.findTag(list(map(lambda l: l[0], group[1])))
-            longest_tag = max(possible, key=len)
+            longest_tag = possible[0] if len(possible[0])>0 else max(possible, key=len)
             group[0] = longest_tag
             if longest_tag =="":
-                energy+=6900
+                energy+=69.0
                 continue
             
             if longest_tag in seen_tags:
-                energy+=750  
+                energy+=7.5 
             else:
                 seen_tags.append(longest_tag) 
 
@@ -96,19 +97,19 @@ class SimulatedAnnealing:
             if is_mixed:
                 for player in group[1]:
                     if not player[0].startswith(longest_tag):
-                        energy+=50
+                        energy+=.5
 
         return energy
 
 
-    def affix_score(self, possible: list[str], longest_tag: str) -> tuple[int, bool]:
+    def affix_score(self, possible: list[str], longest_tag: str) -> tuple[float, bool]:
         if possible.index(longest_tag)!=0:
             if possible.index(longest_tag) == 1:
-                return 250, False  
+                return 2.5, False  
             elif possible.index(longest_tag) == 2:
-                return 175, True
+                return 1.75, True
 
-        return 0, False
+        return 0.0, False
     
     def E(self, state: list[list[str, list[tuple[str, str]]]]) -> int:
         '''
@@ -118,7 +119,7 @@ class SimulatedAnnealing:
 
         return energy
 
-    def P(self, old_E: int, new_E: int) -> float:
+    def P(self, old_E: float, new_E: float) -> float:
         '''
         return acceptance probability
         '''
@@ -156,20 +157,26 @@ class SimulatedAnnealing:
             new_energy = self.E(new_solution)
             
             acceptance_prob = self.P(curr_energy, new_energy)
+            # print("AP:", acceptance_prob)
             if acceptance_prob > rand.random():
                 curr_solution, curr_energy = new_solution, new_energy
             
             self.T*=self.ALPHA
             print(f"ITERATION {_n+1} -> Energy: {curr_energy}")
+            if curr_energy<=0:
+                break
         
         return squeeze_names(curr_solution), curr_energy
 
 if __name__ == "__main__":
     players = ['λρ Tom', 'A*', 'v¢ sauzule', 'saharave', 'MKW 4Beans', 'cadavreMK', 'coci loko', 'C', 'So[LLLLLL]', 'Zjazca', 'Z- stavros', 'vc Dane']
+    players = ['AYA hello', '!!m&m?!', 'mong', 'MV math', 'pringle@MV', '@*', 'AYAYA', 'i need ZZZ', 'Z - stop', 'USA h', 'USA K', 'ABBA']
 
     players = list(map(lambda l: (Utils.sanitize_uni(l.strip()).lower(), l), players))
     tag_algo = SimulatedAnnealing(players, per_team = 2)
+    start = time.time()
     sol, energy = tag_algo.anneal()
     print('\n----------------------------------\n')
     print(sol)
     print("ENERGY:",energy)
+    print('\nalgo time:', time.time()-start)

@@ -7,7 +7,7 @@ Created on Sat Jun 5 15:30:03 2021
 
 def chunks(l, n):
     """
-    split list into smaller lists
+    split list equally into smaller sublists
 
     Parameters
     ----------
@@ -72,7 +72,7 @@ def sanitize_uni(string, for_search = False):
 
 def sanitize_tag_uni(string):
     '''
-    get rid of non-unicode characters that cannot be converted, but keep convertable characters in original form
+    get rid of non-ASCII characters that cannot be converted, but keep convertable characters in original form
     '''
     string = [i for i in string if CHAR_MAP.get(i, i) in VALID_CHARS or i in MULT_CHAR_MAP or (unidecode(i)!="" and unidecode(i) in VALID_CHARS)]
     while len(string)>0:
@@ -144,7 +144,7 @@ MULT_CHAR_MAP = {
 
 if __name__ == "__main__":
     import time
-    i = "Player"
+    i = ""
     sans = []
     t = time.time()
     for _ in range(100):
