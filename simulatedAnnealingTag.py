@@ -6,11 +6,11 @@ import copy
 import Utils
 from itertools import chain
 from functools import partial, reduce
-from typing import Iterator
+from typing import Iterator, Tuple, List
 from os.path import commonprefix
 import time
 
-def squeeze_names(sol: list[list[str, list[tuple[str, str]]]]) -> list[list[str, list[str]]]:
+def squeeze_names(sol: List[Tuple[str, List[Tuple[str, str]]]]) -> List[Tuple[str, List[str]]]:
     for i in range(len(sol)):
         sol[i][1] = list(map(lambda l: l[1], sol[i][1]))
 
@@ -24,7 +24,7 @@ def allngram(seq: str, minn=1, maxn=None) -> Iterator[str]:
     ngrams = map(partial(ngram, seq), lengths)
     return set(chain.from_iterable(ngrams))
 
-def commonaffix(group: list[str]) -> tuple[bool, str]:
+def commonaffix(group: List[str]) -> Tuple[bool, str]:
     maxn = min(map(len, group))
     seqs_ngrams = map(partial(allngram, maxn=maxn), group)
     intersection = reduce(set.intersection, seqs_ngrams)
@@ -39,7 +39,7 @@ def commonaffix(group: list[str]) -> tuple[bool, str]:
         return False, ""
 
 class SimulatedAnnealing:
-    def __init__(self, players: list[tuple[str, str]], per_team: int, temperature = 1.0, alpha = 0.9, iterations = 425):
+    def __init__(self, players: List[Tuple[str, str]], per_team: int, temperature = 1.0, alpha = 0.9, iterations = 425):
         self.T = temperature
         self.ALPHA = alpha
         self.ITERS = iterations
@@ -48,7 +48,7 @@ class SimulatedAnnealing:
         self.players = players
 
     
-    def init_state(self) -> list[list[str, list[tuple[str, str]]]]:
+    def init_state(self) -> List[Tuple[str, List[Tuple[str, str]]]]:
         '''
         initialize random state
         '''
@@ -59,7 +59,7 @@ class SimulatedAnnealing:
         return chunks
     
     
-    def findTag(self, group: list[str, tuple[str, str]]) -> tuple[str, str, str]:
+    def findTag(self, group: Tuple[str, Tuple[str, str]]) -> Tuple[str, str, str]:
         #check prefix
         pre = commonprefix(group)
         
@@ -74,7 +74,7 @@ class SimulatedAnnealing:
         
         return pre.strip(), suf.strip(), mixed.strip()
 
-    def tags_eval(self, state: list[list[str, list[tuple[str, str]]]]) -> float:
+    def tags_eval(self, state: List[Tuple[str, List[Tuple[str, str]]]]) -> float:
         seen_tags = []
         energy = 0.0
 
@@ -102,7 +102,7 @@ class SimulatedAnnealing:
         return energy
 
 
-    def affix_score(self, possible: list[str], longest_tag: str) -> tuple[float, bool]:
+    def affix_score(self, possible: List[str], longest_tag: str) -> Tuple[float, bool]:
         if possible.index(longest_tag)!=0:
             if possible.index(longest_tag) == 1:
                 return 2.5, False  
@@ -111,7 +111,7 @@ class SimulatedAnnealing:
 
         return 0.0, False
     
-    def E(self, state: list[list[str, list[tuple[str, str]]]]) -> int:
+    def E(self, state: List[Tuple[str, List[Tuple[str, str]]]]) -> int:
         '''
         return energy (cost) of solution
         '''
@@ -128,7 +128,7 @@ class SimulatedAnnealing:
 
         return exp(-(new_E - old_E) / self.T)
 
-    def n_swap(self, state: list[list[str, list[tuple[str, str]]]]) -> list[list[str, list[tuple[str, str]]]]:
+    def n_swap(self, state: List[Tuple[str, List[Tuple[str, str]]]]) -> List[Tuple[str, List[Tuple[str, str]]]]:
         '''
         randomly swap two strings' groupings
         '''
@@ -145,7 +145,7 @@ class SimulatedAnnealing:
 
         return neighbor_state
 
-    def anneal(self) -> tuple[list[list[str, list[str]]], int]:
+    def anneal(self) -> Tuple[List[Tuple[str, List[str]]], int]:
         '''
         return a solution
         '''
